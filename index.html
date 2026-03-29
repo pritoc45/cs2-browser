@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>CS2 Ultimate Hub</title>
+    <title>CS2 Tactical Hub</title>
     <style>
         :root {
             --accent: #ff9d00;
-            --panel-bg: rgba(10, 10, 10, 0.9);
+            --text-color: #ffffff;
+            --panel-bg: rgba(15, 15, 15, 0.95);
         }
 
         body {
             margin: 0; padding: 0;
             background: #000 center/cover fixed no-repeat;
-            color: white; font-family: 'Segoe UI', sans-serif;
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
@@ -24,66 +25,70 @@
         }
 
         /* Часы */
-        .clock { text-align: center; margin: 40px 0 20px; }
-        #time { font-size: 72px; font-weight: 900; line-height: 1; }
-        #date { color: var(--accent); text-transform: uppercase; letter-spacing: 2px; font-size: 14px; }
+        .clock { text-align: center; margin: 30px 0 15px; }
+        #time { font-size: 80px; font-weight: 900; line-height: 1; color: var(--text-color); }
+        #date { color: var(--accent); text-transform: uppercase; letter-spacing: 3px; font-size: 14px; margin-top: 5px; }
 
-        /* Поиск и Подсказки */
-        .search-wrapper { width: 90%; max-width: 450px; position: relative; margin-bottom: 30px; z-index: 100; }
-        
+        /* Поиск */
+        .search-wrapper { width: 92%; max-width: 500px; position: relative; margin-bottom: 25px; }
         input[type="text"] {
-            width: 100%; padding: 18px; border: 2px solid var(--accent);
-            background: var(--panel-bg); color: white; border-radius: 15px;
+            width: 100%; padding: 18px 25px; border: 2px solid var(--accent);
+            background: var(--panel-bg); color: var(--text-color); border-radius: 12px;
             font-size: 18px; outline: none; box-sizing: border-box; backdrop-filter: blur(10px);
-            transition: border-radius 0.2s;
         }
 
         #suggestions {
             position: absolute; top: 100%; left: 0; right: 0;
-            background: var(--panel-bg); border: 2px solid var(--accent);
-            border-top: none; border-radius: 0 0 15px 15px;
-            display: none; overflow: hidden; backdrop-filter: blur(10px);
+            background: var(--panel-bg); border: 2px solid var(--accent); border-top: none;
+            display: none; z-index: 100; border-radius: 0 0 12px 12px;
         }
+        .sugg-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-color); }
 
-        .sugg-item {
-            padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer; font-size: 16px;
-        }
-        .sugg-item:last-child { border-bottom: none; }
-        .sugg-item:active { background: var(--accent); color: black; }
-
-        /* Плитки */
+        /* ПЛИТОЧНЫЙ ДИЗАЙН */
         .grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
-            width: 95%; max-width: 500px; padding-bottom: 100px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            width: 95%; max-width: 550px; padding-bottom: 100px;
         }
         .tile {
-            background: var(--panel-bg); border-left: 4px solid var(--accent);
-            border-radius: 8px; padding: 20px 10px; text-decoration: none;
-            color: white; text-align: center; position: relative; backdrop-filter: blur(5px);
+            background: var(--panel-bg);
+            aspect-ratio: 1 / 1;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 3px solid var(--accent);
+            border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; position: relative; transition: transform 0.1s;
         }
-        .tile-name { font-weight: bold; color: var(--accent); }
-        
-        /* Кнопки управления */
-        .controls { position: fixed; bottom: 20px; display: flex; gap: 10px; z-index: 101; }
-        .btn {
-            background: var(--accent); color: black; border: none;
-            padding: 12px 18px; border-radius: 30px; font-weight: bold; font-size: 18px;
+        .tile:active { transform: scale(0.92); background: rgba(255,255,255,0.05); }
+        .tile-icon { font-size: 24px; margin-bottom: 8px; color: var(--accent); font-weight: bold; }
+        .tile-name { font-size: 12px; font-weight: 800; text-transform: uppercase; text-align: center; color: var(--text-color); padding: 0 5px; }
+
+        /* Кнопки управления плитки в режиме редактирования */
+        .tile-controls {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); display: none; 
+            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 5px;
+        }
+        .edit-mode .tile-controls { display: grid; }
+        .ctrl-btn { border: none; background: var(--accent); color: #000; font-weight: bold; font-size: 10px; border-radius: 4px; }
+        .btn-del { background: #ff4444; color: white; }
+
+        /* Панель кнопок внизу */
+        .bottom-nav { position: fixed; bottom: 20px; display: flex; gap: 15px; z-index: 101; }
+        .main-btn {
+            background: var(--accent); color: #000; border: none;
+            width: 55px; height: 55px; border-radius: 50%; font-size: 24px; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        /* Настройки */
-        #modal {
+        /* Модалка настроек */
+        #settingsModal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #111; padding: 25px; border-radius: 15px;
-            border: 2px solid var(--accent); display: none; z-index: 200; width: 85%;
+            background: #111; padding: 20px; border-radius: 15px;
+            border: 2px solid var(--accent); display: none; z-index: 200; width: 85%; max-width: 350px;
         }
-        .field { margin-bottom: 15px; }
-        .field label { display: block; font-size: 12px; color: var(--accent); margin-bottom: 5px; }
-        .bg-switch { display: flex; gap: 10px; margin-bottom: 10px; }
-        .sw-btn { flex: 1; padding: 8px; background: #222; color: #999; border-radius: 5px; text-align: center; }
-        .sw-btn.active { background: var(--accent); color: black; }
-        .delete-btn { position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; width: 22px; height: 22px; border: none; display: none; }
-        .edit-mode .delete-btn { display: block; }
+        .option-group { margin-bottom: 15px; }
+        .option-group label { display: block; font-size: 11px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
+        .option-group input[type="color"] { width: 100%; height: 35px; border: none; background: none; }
     </style>
 </head>
 <body>
@@ -102,126 +107,127 @@
 
     <div id="grid" class="grid"></div>
 
-    <div class="controls">
-        <button class="btn" onclick="toggleEdit()">✎</button>
-        <button class="btn" onclick="openSettings()">⚙</button>
-        <button class="btn" onclick="addTile()">+</button>
+    <div class="bottom-nav">
+        <button class="main-btn" onclick="toggleEdit()">✎</button>
+        <button class="main-btn" onclick="openSettings()">⚙</button>
+        <button class="main-btn" onclick="addTile()">+</button>
     </div>
 
-    <div id="modal">
-        <h3>Настройки</h3>
-        <div class="field">
-            <label>Тип фона</label>
-            <div class="bg-switch">
-                <div id="swImg" class="sw-btn" onclick="setMode('image')">Картинка</div>
-                <div id="swSld" class="sw-btn" onclick="setMode('solid')">Цвет</div>
-            </div>
+    <div id="settingsModal">
+        <h3 style="margin:0 0 15px">Настройки дизайна</h3>
+        <div class="option-group">
+            <label>Цвет плиток и акцентов</label>
+            <input type="color" id="accentPicker" onchange="updateColors()">
         </div>
-        <div id="fileField" class="field">
-            <label>Загрузить фон</label>
-            <input type="file" accept="image/*" onchange="upload(this)">
+        <div class="option-group">
+            <label>Цвет текста и времени</label>
+            <input type="color" id="textPicker" onchange="updateColors()">
         </div>
-        <div class="field">
-            <label>Основной цвет</label>
-            <input type="color" id="cp" onchange="changeCol(this.value)" style="width:100%">
+        <div class="option-group">
+            <label>Фон (картинка)</label>
+            <input type="file" accept="image/*" onchange="uploadBg(this)" style="font-size: 10px">
         </div>
-        <button class="btn" style="width:100%" onclick="closeSettings()">Закрыть</button>
+        <button class="main-btn" style="width:100%; border-radius: 10px; height: 40px; font-size: 14px" onclick="closeSettings()">Готово</button>
     </div>
 
     <script>
-        let config = JSON.parse(localStorage.getItem('cs2_final_v1')) || {
-            accent: '#ff9d00', bgMode: 'image', bgImg: '',
-            links: [{name: 'AYUGRAM', url: 'https://t.me'}, {name: 'FACEIT', url: 'https://faceit.com'}]
+        let config = JSON.parse(localStorage.getItem('cs2_hub_v5')) || {
+            accent: '#ff9d00',
+            textColor: '#ffffff',
+            bg: '',
+            links: [
+                {name: 'AyuGram', url: 'https://t.me'},
+                {name: 'Faceit', url: 'https://faceit.com'},
+                {name: 'HLTV', url: 'https://hltv.org'},
+                {name: 'Market', url: 'https://steamcommunity.com/market/search?appid=730'},
+                {name: 'Nades', url: 'https://cs2nades.com'}
+            ]
         };
 
-        const searchInput = document.getElementById('searchInput');
-        const suggBox = document.getElementById('suggestions');
-
-        // ГЛАВНАЯ ФУНКЦИЯ ПОДСКАЗОК
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value;
-            if (query.length < 2) {
-                suggBox.style.display = 'none';
-                searchInput.style.borderRadius = "15px";
-                return;
-            }
-
-            const script = document.createElement('script');
-            script.src = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}&callback=showSugg`;
-            document.body.appendChild(script);
-            document.body.removeChild(script);
-        });
-
-        window.showSugg = (data) => {
-            const results = data[1];
-            if (results.length > 0) {
-                suggBox.innerHTML = '';
-                results.slice(0, 6).forEach(text => {
-                    const div = document.createElement('div');
-                    div.className = 'sugg-item';
-                    div.textContent = text;
-                    div.onclick = () => {
-                        searchInput.value = text;
-                        document.getElementById('searchForm').submit();
-                    };
-                    suggBox.appendChild(div);
-                });
-                suggBox.style.display = 'block';
-                searchInput.style.borderRadius = "15px 15px 0 0";
-            } else {
-                suggBox.style.display = 'none';
-                searchInput.style.borderRadius = "15px";
-            }
-        };
-
-        // Закрытие подсказок при клике мимо
-        document.addEventListener('click', (e) => {
-            if (e.target !== searchInput) {
-                suggBox.style.display = 'none';
-                searchInput.style.borderRadius = "15px";
-            }
-        });
+        function save() { localStorage.setItem('cs2_hub_v5', JSON.stringify(config)); }
 
         function render() {
             document.documentElement.style.setProperty('--accent', config.accent);
-            if (config.bgMode === 'image' && config.bgImg) {
-                document.body.style.backgroundImage = `url(${config.bgImg})`;
+            document.documentElement.style.setProperty('--text-color', config.textColor);
+            if(config.bg) {
+                document.body.style.backgroundImage = `url(${config.bg})`;
                 document.body.classList.add('bg-image');
-            } else {
-                document.body.style.backgroundImage = 'none';
-                document.body.style.backgroundColor = config.bgMode === 'solid' ? config.accent : '#000';
-                document.body.classList.remove('bg-image');
             }
+            
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
-            config.links.forEach((l, i) => {
-                const d = document.createElement('div');
-                d.className = 'tile';
-                d.innerHTML = `<button class="delete-btn" onclick="removeLink(${i})">×</button>
-                <a href="${l.url}" style="text-decoration:none;color:white"><span class="tile-name">${l.name}</span></a>`;
-                grid.appendChild(d);
+            config.links.forEach((link, i) => {
+                const item = document.createElement('div');
+                item.className = 'tile';
+                item.innerHTML = `
+                    <div class="tile-icon">${link.name.charAt(0)}</div>
+                    <div class="tile-name">${link.name}</div>
+                    <a href="${link.url}" style="position:absolute;inset:0;z-index:1"></a>
+                    <div class="tile-controls" style="z-index:2">
+                        <button class="ctrl-btn" onclick="move(${i}, -1)">←</button>
+                        <button class="ctrl-btn" onclick="move(${i}, 1)">→</button>
+                        <button class="ctrl-btn btn-del" onclick="del(${i})" style="grid-column: span 2">УДАЛИТЬ</button>
+                    </div>
+                `;
+                grid.appendChild(item);
             });
-            document.getElementById('swImg').className = config.bgMode === 'image' ? 'sw-btn active' : 'sw-btn';
-            document.getElementById('swSld').className = config.bgMode === 'solid' ? 'sw-btn active' : 'sw-btn';
-            document.getElementById('fileField').style.display = config.bgMode === 'image' ? 'block' : 'none';
+            document.getElementById('accentPicker').value = config.accent;
+            document.getElementById('textPicker').value = config.textColor;
         }
 
-        function upload(el) {
+        function move(index, step) {
+            let newIndex = index + step;
+            if (newIndex >= 0 && newIndex < config.links.length) {
+                let temp = config.links[index];
+                config.links[index] = config.links[newIndex];
+                config.links[newIndex] = temp;
+                save(); render();
+            }
+        }
+
+        function del(i) { config.links.splice(i, 1); save(); render(); }
+        
+        function updateColors() {
+            config.accent = document.getElementById('accentPicker').value;
+            config.textColor = document.getElementById('textPicker').value;
+            save(); render();
+        }
+
+        function uploadBg(el) {
             const reader = new FileReader();
-            reader.onload = (e) => { config.bgImg = e.target.result; save(); render(); };
+            reader.onload = (e) => { config.bg = e.target.result; save(); render(); };
             reader.readAsDataURL(el.files[0]);
         }
-        function setMode(m) { config.bgMode = m; save(); render(); }
-        function changeCol(v) { config.accent = v; save(); render(); }
-        function addTile() { 
-            const n = prompt('Имя:'); const u = prompt('URL:', 'https://');
-            if(n && u) { config.links.push({name:n, url:u}); save(); render(); }
+
+        function addTile() {
+            const name = prompt('Название:');
+            const url = prompt('URL:', 'https://');
+            if(name && url) { config.links.push({name, url}); save(); render(); }
         }
-        function removeLink(i) { config.links.splice(i,1); save(); render(); }
+
         function toggleEdit() { document.body.classList.toggle('edit-mode'); }
-        function openSettings() { document.getElementById('modal').style.display = 'block'; }
-        function closeSettings() { document.getElementById('modal').style.display = 'none'; }
-        function save() { localStorage.setItem('cs2_final_v1', JSON.stringify(config)); }
+        function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
+        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+
+        // Поиск (скрипт из прошлого шага)
+        const searchInput = document.getElementById('searchInput');
+        const suggBox = document.getElementById('suggestions');
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value.length < 2) { suggBox.style.display = 'none'; return; }
+            const script = document.createElement('script');
+            script.src = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(searchInput.value)}&callback=showSugg`;
+            document.body.appendChild(script);
+            document.body.removeChild(script);
+        });
+        window.showSugg = (data) => {
+            suggBox.innerHTML = '';
+            data[1].slice(0, 5).forEach(t => {
+                const d = document.createElement('div'); d.className = 'sugg-item'; d.textContent = t;
+                d.onclick = () => { searchInput.value = t; document.getElementById('searchForm').submit(); };
+                suggBox.appendChild(d);
+            });
+            suggBox.style.display = 'block';
+        };
 
         function tick() {
             const n = new Date();
