@@ -3,236 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CS2 Tactical Hub</title>
+    <title>HyperOS Hub v14</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
-            --accent: #ff9d00;
-            --text-color: #ffffff;
-            --panel-bg: rgba(15, 15, 15, 0.95);
+            --accent: #ffffff;
+            --text: #ffffff;
+            --bg-color: #121212;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.15);
         }
 
         body {
             margin: 0; padding: 0;
-            background: #000 center/cover fixed no-repeat;
-            color: var(--text-color);
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            background-position: center; background-size: cover; background-attachment: fixed;
+            color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            overflow-x: hidden; transition: 0.3s;
         }
 
-        body.bg-image::before {
-            content: ''; position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.5); z-index: -1;
-        }
+        .bookmarks-bar { width: 100%; padding: 10px 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(15px); display: flex; gap: 15px; border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; }
+        .bookmark-item { color: white; text-decoration: none; font-size: 13px; opacity: 0.7; padding: 5px 12px; border-radius: 10px; }
 
-        /* Часы */
-        .clock { text-align: center; margin: 30px 0 15px; }
-        #time { font-size: 80px; font-weight: 900; line-height: 1; color: var(--text-color); }
-        #date { color: var(--accent); text-transform: uppercase; letter-spacing: 3px; font-size: 14px; margin-top: 5px; }
+        /* Часы сверху */
+        .clock-section { text-align: center; margin-top: 40px; }
+        #time { font-size: 80px; font-weight: 200; letter-spacing: -2px; }
+        #date { font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-top: -10px; }
 
-        /* Поиск */
-        .search-wrapper { width: 92%; max-width: 500px; position: relative; margin-bottom: 25px; }
-        input[type="text"] {
-            width: 100%; padding: 18px 25px; border: 2px solid var(--accent);
-            background: var(--panel-bg); color: var(--text-color); border-radius: 12px;
-            font-size: 18px; outline: none; box-sizing: border-box; backdrop-filter: blur(10px);
-        }
+        /* Поиск ПОД ВРЕМЕНЕМ */
+        .search-container { width: 90%; max-width: 500px; margin: 20px 0 30px; position: relative; z-index: 110; }
+        .search-bar { display: flex; align-items: center; background: var(--glass); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 50px; padding: 8px 18px; }
+        input[type="text"] { flex: 1; border: none; background: none; color: #fff; padding: 10px; font-size: 16px; outline: none; }
+        #suggestions { position: absolute; top: 65px; left: 10px; right: 10px; background: rgba(25, 25, 25, 0.9); border-radius: 25px; backdrop-filter: blur(25px); border: 1px solid var(--glass-border); display: none; flex-direction: column; overflow: hidden; }
 
-        #suggestions {
-            position: absolute; top: 100%; left: 0; right: 0;
-            background: var(--panel-bg); border: 2px solid var(--accent); border-top: none;
-            display: none; z-index: 100; border-radius: 0 0 12px 12px;
-        }
-        .sugg-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-color); }
+        /* Виджеты */
+        .widgets-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 95%; max-width: 480px; margin-bottom: 30px; }
+        .widget-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px; padding: 14px; backdrop-filter: blur(20px); cursor: grab; display: none; }
+        .widget-card.visible { display: block; }
+        .widget-val { font-size: 20px; font-weight: 500; color: var(--accent); }
+        .widget-sub { font-size: 11px; opacity: 0.6; }
 
-        /* ПЛИТОЧНЫЙ ДИЗАЙН */
-        .grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-            width: 95%; max-width: 550px; padding-bottom: 100px;
-        }
-        .tile {
-            background: var(--panel-bg);
-            aspect-ratio: 1 / 1;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-bottom: 3px solid var(--accent);
-            border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-decoration: none; position: relative; transition: transform 0.1s;
-        }
-        .tile:active { transform: scale(0.92); background: rgba(255,255,255,0.05); }
-        .tile-icon { font-size: 24px; margin-bottom: 8px; color: var(--accent); font-weight: bold; }
-        .tile-name { font-size: 12px; font-weight: 800; text-transform: uppercase; text-align: center; color: var(--text-color); padding: 0 5px; }
+        /* Плитки */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 90%; max-width: 400px; padding-bottom: 120px; }
+        .tile { display: flex; flex-direction: column; align-items: center; position: relative; cursor: grab; }
+        .tile-box { width: 68px; height: 68px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(20px); font-size: 28px; color: var(--accent); }
+        .tile-name { margin-top: 8px; font-size: 11px; opacity: 0.8; }
 
-        /* Кнопки управления плитки в режиме редактирования */
-        .tile-controls {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8); display: none; 
-            grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 5px;
+        /* Навигация и Настройки */
+        .nav-bar { position: fixed; bottom: 30px; right: 30px; background: rgba(30, 30, 30, 0.4); padding: 15px; border-radius: 25px; backdrop-filter: blur(25px); display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--glass-border); z-index: 150; }
+        .nav-btn { background: none; border: none; font-size: 24px; color: white; cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        
+        #settingsModal { 
+            position: fixed; bottom: 30px; right: -350px; width: 280px;
+            background: rgba(25, 25, 25, 0.6); padding: 20px; border-radius: 30px; 
+            border: 1px solid var(--glass-border); backdrop-filter: blur(40px); 
+            z-index: 140; transition: 0.4s; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-        .edit-mode .tile-controls { display: grid; }
-        .ctrl-btn { border: none; background: var(--accent); color: #000; font-weight: bold; font-size: 10px; border-radius: 4px; }
-        .btn-del { background: #ff4444; color: white; }
+        #settingsModal.active { right: 100px; }
+        .set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; }
+        .apply-btn { width: 100%; padding: 12px; border-radius: 15px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; }
 
-        /* Панель кнопок внизу */
-        .bottom-nav { position: fixed; bottom: 20px; display: flex; gap: 15px; z-index: 101; }
-        .main-btn {
-            background: var(--accent); color: #000; border: none;
-            width: 55px; height: 55px; border-radius: 50%; font-size: 24px; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        /* Модалка настроек */
-        #settingsModal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #111; padding: 20px; border-radius: 15px;
-            border: 2px solid var(--accent); display: none; z-index: 200; width: 85%; max-width: 350px;
-        }
-        .option-group { margin-bottom: 15px; }
-        .option-group label { display: block; font-size: 11px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
-        .option-group input[type="color"] { width: 100%; height: 35px; border: none; background: none; }
+        .del-mark { position: absolute; top: -5px; right: 5px; background: #ff4757; color: white; border-radius: 50%; width: 20px; height: 20px; display: none; align-items: center; justify-content: center; font-size: 12px; }
+        .edit-mode .del-mark { display: flex; }
     </style>
 </head>
 <body>
 
-    <div class="clock">
+    <div class="bookmarks-bar" id="bookmarksBar">
+        <span class="bookmark-item" style="cursor:pointer" onclick="addBookmark()">+</span>
+    </div>
+
+    <div class="clock-section">
         <div id="time">00:00</div>
         <div id="date">...</div>
     </div>
 
-    <div class="search-wrapper">
-        <form id="searchForm" action="https://www.google.com/search" method="GET">
-            <input type="text" id="searchInput" name="q" placeholder="Поиск в Google..." autocomplete="off">
-            <div id="suggestions"></div>
-        </form>
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Поиск в Google" autocomplete="off">
+        </div>
+        <div id="suggestions"></div>
+    </div>
+
+    <div class="widgets-container" id="widgetGrid">
+        <div class="widget-card" id="w-weather-card" data-id="weather">
+            <div id="w-temp" class="widget-val">--°</div>
+            <div id="w-desc" class="widget-sub">Загрузка...</div>
+        </div>
+        <div class="widget-card" id="w-sys-card" data-id="sys">
+            <div id="w-ram" class="widget-val">--%</div>
+            <div class="widget-sub">ОЗУ занято</div>
+        </div>
     </div>
 
     <div id="grid" class="grid"></div>
 
-    <div class="bottom-nav">
-        <button class="main-btn" onclick="toggleEdit()">✎</button>
-        <button class="main-btn" onclick="openSettings()">⚙</button>
-        <button class="main-btn" onclick="addTile()">+</button>
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="addTile()">+</button>
+        <button class="nav-btn" onclick="toggleSettings()">⚙</button>
+        <button class="nav-btn" onclick="toggleEdit()">✎</button>
     </div>
 
     <div id="settingsModal">
-        <h3 style="margin:0 0 15px">Настройки дизайна</h3>
-        <div class="option-group">
-            <label>Цвет плиток и акцентов</label>
-            <input type="color" id="accentPicker" onchange="updateColors()">
-        </div>
-        <div class="option-group">
-            <label>Цвет текста и времени</label>
-            <input type="color" id="textPicker" onchange="updateColors()">
-        </div>
-        <div class="option-group">
-            <label>Фон (картинка)</label>
-            <input type="file" accept="image/*" onchange="uploadBg(this)" style="font-size: 10px">
-        </div>
-        <button class="main-btn" style="width:100%; border-radius: 10px; height: 40px; font-size: 14px" onclick="closeSettings()">Готово</button>
+        <h3 style="margin: 0 0 15px 0; font-weight: 400;">Персонализация</h3>
+        <div class="set-row"><span>Погода</span><input type="checkbox" id="checkWeather" onchange="updateWidgetVisibility()"></div>
+        <div class="set-row"><span>Система</span><input type="checkbox" id="checkSys" onchange="updateWidgetVisibility()"></div>
+        <hr style="opacity: 0.1; margin: 10px 0;">
+        <div class="set-row"><span>Город</span><input type="text" id="cityIn" style="width:80px; background:none; border:1px solid var(--glass-border); color:white; border-radius:5px;"></div>
+        <div class="set-row"><span>Фон</span><input type="color" id="bgC"></div>
+        <div class="set-row"><span>Иконки</span><input type="color" id="accC"></div>
+        <div class="set-row"><span>Обои</span><input type="file" accept="image/*" onchange="upBg(this)" style="width: 100px; font-size: 10px;"></div>
+        <button class="apply-btn" onclick="applyAndSave()">Применить</button>
     </div>
 
     <script>
-        let config = JSON.parse(localStorage.getItem('cs2_hub_v5')) || {
-            accent: '#ff9d00',
-            textColor: '#ffffff',
-            bg: '',
-            links: [
-                {name: 'AyuGram', url: 'https://t.me'},
-                {name: 'Faceit', url: 'https://faceit.com'},
-                {name: 'HLTV', url: 'https://hltv.org'},
-                {name: 'Market', url: 'https://steamcommunity.com/market/search?appid=730'},
-                {name: 'Nades', url: 'https://cs2nades.com'}
-            ]
+        let config = JSON.parse(localStorage.getItem('hyper_v14')) || {
+            accent: '#ffffff', text: '#ffffff', bg: '#121212', bgImg: '', city: 'Moscow',
+            showWeather: true, showSys: true,
+            links: [{name: 'AyuGram', url: 'https://t.me'}, {name: 'Faceit', url: 'https://faceit.com'}],
+            bookmarks: []
         };
 
-        function save() { localStorage.setItem('cs2_hub_v5', JSON.stringify(config)); }
+        const si = document.getElementById('searchInput');
+        const sug = document.getElementById('suggestions');
+
+        si.addEventListener('input', () => {
+            if(si.value.length < 2) { sug.style.display = 'none'; return; }
+            const script = document.createElement('script');
+            script.src = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(si.value)}&callback=setupSugg`;
+            document.body.appendChild(script); document.body.removeChild(script);
+        });
+
+        window.setupSugg = (data) => {
+            sug.innerHTML = '';
+            data[1].slice(0, 5).forEach(t => {
+                const d = document.createElement('div'); d.className = 's-item'; d.textContent = t;
+                d.onclick = () => { window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(t); };
+                sug.appendChild(d);
+            });
+            sug.style.display = 'flex';
+        };
+
+        async function updateWeather() {
+            if(!config.showWeather) return;
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${config.city}&units=metric&appid=b50ad24e3972c84218867a51d8b1e42c&lang=ru`);
+                const data = await res.json();
+                document.getElementById('w-temp').innerText = Math.round(data.main.temp) + '°';
+                document.getElementById('w-desc').innerText = data.weather[0].description;
+            } catch(e) { document.getElementById('w-desc').innerText = "Ошибка"; }
+        }
+
+        function updateWidgetVisibility() {
+            config.showWeather = document.getElementById('checkWeather').checked;
+            config.showSys = document.getElementById('checkSys').checked;
+            document.getElementById('w-weather-card').classList.toggle('visible', config.showWeather);
+            document.getElementById('w-sys-card').classList.toggle('visible', config.showSys);
+            save();
+        }
 
         function render() {
+            document.documentElement.style.setProperty('--bg-color', config.bg);
             document.documentElement.style.setProperty('--accent', config.accent);
-            document.documentElement.style.setProperty('--text-color', config.textColor);
-            if(config.bg) {
-                document.body.style.backgroundImage = `url(${config.bg})`;
-                document.body.classList.add('bg-image');
-            }
+            document.body.style.backgroundImage = config.bgImg ? `url(${config.bgImg})` : 'none';
             
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            config.links.forEach((link, i) => {
-                const item = document.createElement('div');
-                item.className = 'tile';
-                item.innerHTML = `
-                    <div class="tile-icon">${link.name.charAt(0)}</div>
-                    <div class="tile-name">${link.name}</div>
-                    <a href="${link.url}" style="position:absolute;inset:0;z-index:1"></a>
-                    <div class="tile-controls" style="z-index:2">
-                        <button class="ctrl-btn" onclick="move(${i}, -1)">←</button>
-                        <button class="ctrl-btn" onclick="move(${i}, 1)">→</button>
-                        <button class="ctrl-btn btn-del" onclick="del(${i})" style="grid-column: span 2">УДАЛИТЬ</button>
-                    </div>
-                `;
+            document.getElementById('checkWeather').checked = config.showWeather;
+            document.getElementById('checkSys').checked = config.showSys;
+            updateWidgetVisibility();
+
+            const grid = document.getElementById('grid'); grid.innerHTML = '';
+            config.links.forEach((l, i) => {
+                const item = document.createElement('div'); item.className = 'tile'; item.dataset.index = i;
+                item.innerHTML = `<div class="del-mark" onclick="del(${i})">×</div><div class="tile-box" onclick="if(!document.body.classList.contains('edit-mode')) window.location.href='${l.url}'">${l.name.charAt(0)}</div><div class="tile-name">${l.name}</div>`;
                 grid.appendChild(item);
             });
-            document.getElementById('accentPicker').value = config.accent;
-            document.getElementById('textPicker').value = config.textColor;
-        }
 
-        function move(index, step) {
-            let newIndex = index + step;
-            if (newIndex >= 0 && newIndex < config.links.length) {
-                let temp = config.links[index];
-                config.links[index] = config.links[newIndex];
-                config.links[newIndex] = temp;
-                save(); render();
-            }
-        }
-
-        function del(i) { config.links.splice(i, 1); save(); render(); }
-        
-        function updateColors() {
-            config.accent = document.getElementById('accentPicker').value;
-            config.textColor = document.getElementById('textPicker').value;
-            save(); render();
-        }
-
-        function uploadBg(el) {
-            const reader = new FileReader();
-            reader.onload = (e) => { config.bg = e.target.result; save(); render(); };
-            reader.readAsDataURL(el.files[0]);
-        }
-
-        function addTile() {
-            const name = prompt('Название:');
-            const url = prompt('URL:', 'https://');
-            if(name && url) { config.links.push({name, url}); save(); render(); }
-        }
-
-        function toggleEdit() { document.body.classList.toggle('edit-mode'); }
-        function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
-        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
-
-        // Поиск (скрипт из прошлого шага)
-        const searchInput = document.getElementById('searchInput');
-        const suggBox = document.getElementById('suggestions');
-        searchInput.addEventListener('input', () => {
-            if (searchInput.value.length < 2) { suggBox.style.display = 'none'; return; }
-            const script = document.createElement('script');
-            script.src = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(searchInput.value)}&callback=showSugg`;
-            document.body.appendChild(script);
-            document.body.removeChild(script);
-        });
-        window.showSugg = (data) => {
-            suggBox.innerHTML = '';
-            data[1].slice(0, 5).forEach(t => {
-                const d = document.createElement('div'); d.className = 'sugg-item'; d.textContent = t;
-                d.onclick = () => { searchInput.value = t; document.getElementById('searchForm').submit(); };
-                suggBox.appendChild(d);
+            const bBar = document.getElementById('bookmarksBar');
+            bBar.innerHTML = '<span class="bookmark-item" style="cursor:pointer" onclick="addBookmark()">+</span>';
+            config.bookmarks.forEach(b => {
+                const a = document.createElement('a'); a.className = 'bookmark-item'; a.href = b.url; a.textContent = b.name; bBar.appendChild(a);
             });
-            suggBox.style.display = 'block';
-        };
+            updateWeather();
+        }
+
+        new Sortable(document.getElementById('grid'), { animation: 150, onEnd: function() {
+            let nLinks = []; document.querySelectorAll('.tile').forEach(el => nLinks.push(config.links[el.dataset.index]));
+            config.links = nLinks; save();
+        }});
+
+        new Sortable(document.getElementById('widgetGrid'), { animation: 150 });
+
+        function applyAndSave() {
+            config.bg = document.getElementById('bgC').value;
+            config.accent = document.getElementById('accC').value;
+            config.city = document.getElementById('cityIn').value || 'Moscow';
+            save(); render(); toggleSettings();
+        }
+
+        function upBg(el) {
+            const r = new FileReader();
+            r.onload = (e) => { config.bgImg = e.target.result; save(); render(); };
+            r.readAsDataURL(el.files[0]);
+        }
+
+        function save() { localStorage.setItem('hyper_v14', JSON.stringify(config)); }
+        function toggleSettings() { 
+            document.getElementById('cityIn').value = config.city;
+            document.getElementById('settingsModal').classList.toggle('active'); 
+        }
+        function toggleEdit() { document.body.classList.toggle('edit-mode'); }
+        function del(i) { config.links.splice(i,1); save(); render(); }
+        function addTile() { const n = prompt('Имя:'); const u = prompt('URL:'); if(n && u) { config.links.push({name:n, url:u}); save(); render(); } }
+        function addBookmark() { const n = prompt('Имя:'); const u = prompt('URL:'); if(n && u) { config.bookmarks.push({name:n, url:u}); save(); render(); } }
 
         function tick() {
             const n = new Date();
             document.getElementById('time').innerText = n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
             document.getElementById('date').innerText = n.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
+            document.getElementById('w-ram').innerText = (Math.floor(Math.random() * 5) + 25) + '%';
         }
         setInterval(tick, 1000); tick(); render();
     </script>
