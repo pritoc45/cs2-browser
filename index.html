@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CS2 Ultimate Hub v4</title>
+    <style>
+        :root {
+            --accent: #ff9d00;
+            --panel-bg: rgba(10, 10, 10, 0.85);
+            --bg-mode: 'image'; /* 'image' или 'solid' */
+            --bg-solid: #000000;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            /* Динамическое переключение фона через CSS переменные */
+            background-color: var(--bg-solid);
+            background-position: center;
+            background-size: cover;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            
+            color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            transition: background 0.3s ease;
+        }
+
+        /* Оверлей (затемнение), работает только в режиме картинки */
+        body.bg-image::before {
+            content: ''; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.5); z-index: -1;
+        }
+
+        /* Часы */
+        .clock { text-align: center; margin: 40px 0; text-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        #time { font-size: 72px; font-weight: 900; line-height: 1; }
+        #date { color: var(--accent); text-transform: uppercase; letter-spacing: 2px; font-size: 14px; }
+
+        /* Поиск */
+        .search-box { width: 90%; max-width: 450px; margin-bottom: 30px; }
+        input[type="text"] {
+            width: 100%; padding: 18px; border: 2px solid var(--accent);
+            background: var(--panel-bg); color: white; border-radius: 12px;
+            font-size: 18px; outline: none; box-sizing: border-box; backdrop-filter: blur(10px);
+        }
+
+        /* Плитки */
+        .grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            width: 95%; max-width: 500px; padding-bottom: 100px;
+        }
+        .tile {
+            background: var(--panel-bg); border-left: 4px solid var(--accent);
+            border-radius: 8px; padding: 20px 10px; text-decoration: none;
+            color: white; text-align: center; position: relative;
+            backdrop-filter: blur(5px); display: flex; flex-direction: column;
+        }
+        .tile-name { font-weight: bold; color: var(--accent); }
+        
+        .delete-btn {
+            position: absolute; top: -5px; right: -5px; background: red;
+            color: white; border-radius: 50%; width: 22px; height: 22px;
+            font-size: 14px; border: none; display: none; cursor: pointer; z-index: 10;
+        }
+        .edit-mode .delete-btn { display: block; }
+
+        /* Кнопки управления */
+        .controls { position: fixed; bottom: 20px; display: flex; gap: 10px; z-index: 100; }
+        .btn {
+            background: var(--accent); color: black; border: none;
+            padding: 12px 18px; border-radius: 30px; font-weight: bold; font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Модалка настроек */
+        #modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #111; padding: 25px; border-radius: 15px;
+            border: 2px solid var(--accent); display: none; z-index: 200; width: 85%; max-width: 400px;
+        }
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-size: 12px; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; }
+        .field input[type="file"] { color: #999; width: 100%; }
+        .field input[type="color"] { width: 100%; height: 40px; border: none; background: none; cursor: pointer; }
+        
+        /* Переключатель типа фона */
+        .bg-switch { display: flex; gap: 10px; margin-bottom: 15px; }
+        .switch-btn {
+            flex: 1; padding: 10px; background: #222; border: 1px solid #444; color: #999;
+            border-radius: 8px; text-align: center; cursor: pointer;
+        }
+        .switch-btn.active { background: var(--accent); color: black; border-color: var(--accent); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="clock">
+        <div id="time">00:00</div>
+        <div id="date">...</div>
+    </div>
+
+    <div class="search-box">
+        <form action="https://www.google.com/search" method="GET">
+            <input type="text" name="q" placeholder="Поиск в Google..." autocomplete="off">
+        </form>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="controls">
+        <button class="btn" onclick="toggleEdit()">✎</button>
+        <button class="btn" onclick="openSettings()">⚙</button>
+        <button class="btn" onclick="addTile()">+</button>
+    </div>
+
+    <div id="modal">
+        <h3 style="margin:0 0 20px; color:white;">Настройки</h3>
+        
+        <div class="field">
+            <label>Тип фона</label>
+            <div class="bg-switch">
+                <div id="swImage" class="switch-btn" onclick="setBgMode('image')">Картинка</div>
+                <div id="swSolid" class="switch-btn" onclick="setBgMode('solid')">Однотонный</div>
+            </div>
+        </div>
+
+        <div id="fileField" class="field" style="display:none;">
+            <label>Выбрать файл изображения</label>
+            <input type="file" id="fileInput" accept="image/*" onchange="uploadBg(this)">
+        </div>
+
+        <div class="field">
+            <label>Цвет акцента</label>
+            <input type="color" id="colorPicker" onchange="changeColor(this.value)">
+        </div>
+        
+        <button class="btn" style="width:100%; margin-top:10px;" onclick="closeSettings()">Сохранить и закрыть</button>
+    </div>
+
+    <script>
+        // Загрузка конфига или дефолт
+        let config = JSON.parse(localStorage.getItem('cs2_v4_data')) || {
+            accent: '#ff9d00',
+            bgMode: 'image', // 'image' или 'solid'
+            bgImage: 'https://images.alphacoders.com/133/1331778.jpeg',
+            links: [
+                { name: 'AYUGRAM', url: 'https://t.me' },
+                { name: 'FACEIT', url: 'https://faceit.com' },
+                { name: 'HLTV', url: 'https://hltv.org' },
+                { name: 'STEAM MARKET', url: 'https://steamcommunity.com/market/search?appid=730' }
+            ]
+        };
+
+        function render() {
+            // Применяем настройки цветов и режима
+            document.documentElement.style.setProperty('--accent', config.accent);
+            document.documentElement.style.setProperty('--bg-solid', config.accent); // Однотонный = цвет акцента
+
+            if (config.bgMode === 'image') {
+                document.body.style.backgroundImage = `url(${config.bgImage})`;
+                document.body.classList.add('bg-image');
+            } else {
+                document.body.style.backgroundImage = 'none';
+                document.body.classList.remove('bg-image');
+            }
+            
+            // Рендер плиток
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            config.links.forEach((l, i) => {
+                const div = document.createElement('div');
+                div.className = 'tile';
+                div.innerHTML = `
+                    <button class="delete-btn" onclick="removeLink(${i})">×</button>
+                    <a href="${l.url}" style="text-decoration:none; color:inherit; display:flex; flex-direction:column; flex-grow:1; justify-content:center;">
+                        <span class="tile-name">${l.name}</span>
+                    </a>
+                `;
+                grid.appendChild(div);
+            });
+
+            // Обновляем UI настроек
+            document.getElementById('colorPicker').value = config.accent;
+            updateSwitchUI();
+        }
+
+        // --- Управление фоном ---
+        function setBgMode(mode) {
+            config.bgMode = mode;
+            save(); render();
+        }
+
+        function uploadBg(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                config.bgImage = e.target.result;
+                config.bgMode = 'image'; // Сразу включаем режим картинки
+                save(); render();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateSwitchUI() {
+            document.getElementById('swImage').classList.remove('active');
+            document.getElementById('swSolid').classList.remove('active');
+            document.getElementById('fileField').style.display = 'none';
+
+            if (config.bgMode === 'image') {
+                document.getElementById('swImage').classList.add('active');
+                document.getElementById('fileField').style.display = 'block';
+            } else {
+                document.getElementById('swSolid').classList.add('active');
+            }
+        }
+
+        // --- Остальной функционал ---
+        function changeColor(val) { config.accent = val; save(); render(); }
+        
+        function addTile() {
+            const name = prompt('Название сайта:');
+            const url = prompt('URL (обязательно с https://):', 'https://');
+            if(name && url && url !== 'https://') {
+                config.links.push({name, url});
+                save(); render();
+            }
+        }
+
+        function removeLink(i) {
+            if(confirm('Удалить эту плитку?')) {
+                config.links.splice(i, 1);
+                save(); render();
+            }
+        }
+
+        function toggleEdit() { document.body.classList.toggle('edit-mode'); }
+        function openSettings() { document.getElementById('modal').style.display = 'block'; }
+        function closeSettings() { document.getElementById('modal').style.display = 'none'; }
+        function save() { localStorage.setItem('cs2_v4_data', JSON.stringify(config)); }
+
+        // Время
+        function tick() {
+            const now = new Date();
+            document.getElementById('time').innerText = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+            document.getElementById('date').innerText = now.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
+        }
+
+        setInterval(tick, 1000); tick();
+        render(); // Первый рендер при загрузке
+    </script>
+</body>
+</html>
